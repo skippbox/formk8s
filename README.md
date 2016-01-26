@@ -44,7 +44,46 @@ Connect to the head node which has the `kubectl` cli in its path and check that 
 
 The IP addresses of the instances you create will be different.
 
+Testing
+-------
+
 You can log into each node and check that the Flannel overlay is properly setup and try creating a replication controller.
+For instance to run a nginx replicaton controller:
+
+    [centos@ip-172-31-40-236 ~]$ kubectl run nginx --image=nginx
+    [centos@ip-172-31-40-236 ~]$ kubectl get rc
+    CONTROLLER   CONTAINER(S)   IMAGE(S)   SELECTOR    REPLICAS
+    nginx        nginx          nginx      run=nginx   1
+
+Once the image is downloaded the pod will enter running state
+
+    [centos@ip-172-31-40-236 ~]$ kubectl get pods
+    NAME          READY     STATUS    RESTARTS   AGE
+    nginx-vkqte   1/1       Running   0          1m
+
+You can now expose this replication controller to the outside, using a service. For testing you can use a NodePort type of service, since the security group currently opens every port (not recommended though).
+
+    [centos@ip-172-31-40-236 ~]$ cat s.yaml
+    apiVersion: v1
+    kind: Service
+    metadata: 
+      labels: 
+        name: nginx
+      name: nginx
+    spec: 
+      type: NodePort
+      ports:
+      - port: 80
+        targetPort: 80
+      selector: 
+        run: nginx
+
+    [centos@ip-172-31-40-236 ~]$ kubectl create -f s.yaml 
+    You have exposed your service on an external port on all nodes in your
+    cluster.  If you want to expose this service to the external internet, you may
+    need to set up firewall rules for the service port(s) (tcp:30606) to serve traffic.
+
+If you open your browser on the IP of the node running the pod and port 30606, you will see the homepage of nginx.
 
 Tuning
 ------
@@ -52,13 +91,13 @@ Tuning
 The main k8s plan is `k8s.tf` and looks like this:
 
     module "k8s" {
-    source = "./k8s"
-    key_name = "k8s"
-    key_path = "~/.ssh/id_rsa_k8s"
-    region = "eu-west-1"
-    servers= "2"
-    instance_type = "t2.micro"
-    master_instance_type = "t2.micro"
+        source = "./k8s"
+        key_name = "k8s"
+        key_path = "~/.ssh/id_rsa_k8s"
+        region = "eu-west-1"
+        servers= "2"
+        instance_type = "t2.micro"
+        master_instance_type = "t2.micro"
     }
 
     output "master" {
