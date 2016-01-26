@@ -83,7 +83,7 @@ You can now expose this replication controller to the outside, using a service. 
     cluster.  If you want to expose this service to the external internet, you may
     need to set up firewall rules for the service port(s) (tcp:30606) to serve traffic.
 
-If you open your browser on the IP of the node running the pod and port 30606, you will see the homepage of nginx.
+If you open your browser on the IP of the node running the pod and port 30606 (for the example above, your port will be different), you will see the homepage of nginx.
 
 Tuning
 ------
